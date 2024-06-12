@@ -1,17 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class EnemyAIPatrol : MonoBehaviour
 {
-    [HideInInspector] public AiSensor sensor;
+    AiSensor sensor;
+    AiAttack attack;
     GameObject player;
     NavMeshAgent agent;
 
-    [SerializeField] LayerMask whatIsGround, whatIsPlayer;
+    [SerializeField] LayerMask whatIsGround;
+    [SerializeField] float patrolDelay = 5f;  // Delay between patrols
+    [SerializeField] float chaseDelay = 1f;   // Delay before starting to chase
 
     // Patroling
     Vector3 walkPoint;
@@ -19,64 +20,74 @@ public class EnemyAIPatrol : MonoBehaviour
 
     // State change
     bool playerInSight, playerInAttackRange;
+    bool isActing;  // To control the flow of actions
 
     void Start()
     {
         player = GameObject.Find("Player");
         agent = GetComponent<NavMeshAgent>();
         sensor = GetComponent<AiSensor>();
+        attack = GetComponent<AiAttack>();
     }
 
     void Update()
     {
         playerInSight = sensor.IsInSight(player);
-        Debug.Log("This is returning " + playerInSight);
-        // playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
-        
-        if(!playerInSight) 
+        playerInAttackRange = attack.IsInSight(player);
+
+        if (!isActing)
         {
-            Patroling();
+            if (playerInSight && playerInAttackRange)
+            {
+                StartCoroutine(PerformAttack());
+            }
+            else if (playerInSight)
+            {
+                StartCoroutine(StartChase());
+            }
+            else
+            {
+                StartCoroutine(StartPatrolling());
+            }
         }
-        if(playerInSight) 
-        {
-            Chase();
-        }
-        if(playerInSight && playerInAttackRange)Attack();
     }
 
-    void Patroling()
+    IEnumerator StartPatrolling()
     {
+        isActing = true;
         if (!walkPointSet) SearchWalkPoint();
-
-        if (walkPointSet)
-            agent.SetDestination(walkPoint);
+        if (walkPointSet) agent.SetDestination(walkPoint);
 
         Vector3 distanceToWalkPoint = transform.position - walkPoint;
+        if (distanceToWalkPoint.magnitude < 1f) walkPointSet = false;
 
-        // Walkpoint reached
-        if (distanceToWalkPoint.magnitude < 1f)
-            walkPointSet = false;
+        yield return new WaitForSeconds(patrolDelay);
+        isActing = false;
     }
 
-    void Chase()
+    IEnumerator StartChase()
     {
+        isActing = true;
+        yield return new WaitForSeconds(chaseDelay);
         agent.SetDestination(player.transform.position);
+        isActing = false;
     }
 
-    void Attack()
+    IEnumerator PerformAttack()
     {
+        isActing = true;
+        // Grab player
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        yield return null;  // Placeholder since the scene will change
     }
-    
+
     private void SearchWalkPoint()
     {
         MapBounds mapBounds = GameObject.FindObjectOfType<MapBounds>();
         Vector3 min = mapBounds.min.position;
         Vector3 max = mapBounds.max.position;
 
-        walkPoint = new Vector3( Random.Range(min.x, max.x), transform.position.y, Random.Range(min.z, max.z));
-
-        if (Physics.Raycast(walkPoint, -transform.up, 2f, whatIsGround))
-            walkPointSet = true;
+        walkPoint = new Vector3(Random.Range(min.x, max.x), transform.position.y, Random.Range(min.z, max.z));
+        if (Physics.Raycast(walkPoint, -transform.up, 2f, whatIsGround)) walkPointSet = true;
     }
 }
