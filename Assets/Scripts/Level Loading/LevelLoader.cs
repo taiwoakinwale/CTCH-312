@@ -22,7 +22,7 @@ public class LevelLoader : MonoBehaviour
         if (other.tag == "Level")
         {
             SceneManager.LoadScene("Level");
-            Debug.Log(SceneManager.GetActiveScene().name);
+            ScoreManager.scoreCount += 1;
         }
     }
 }

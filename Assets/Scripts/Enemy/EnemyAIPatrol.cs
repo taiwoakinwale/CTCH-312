@@ -10,9 +10,14 @@ public class EnemyAIPatrol : MonoBehaviour
     GameObject player;
     NavMeshAgent agent;
 
+    ScoreManager score;
+
     [SerializeField] LayerMask whatIsGround;
     [SerializeField] float patrolDelay = 5f;  // Delay between patrols
     [SerializeField] float chaseDelay = 1f;   // Delay before starting to chase
+
+     [SerializeField] float baseSpeed = 3.5f;
+    [SerializeField] float speedIncreasePerLevel = 0.5f;
 
     // Patroling
     Vector3 walkPoint;
@@ -25,13 +30,40 @@ public class EnemyAIPatrol : MonoBehaviour
     void Start()
     {
         player = GameObject.Find("Player");
+        if (player == null)
+            Debug.LogError("Player GameObject not found.");
+
         agent = GetComponent<NavMeshAgent>();
+        if (agent == null)
+            Debug.LogError("NavMeshAgent component not found.");
+
         sensor = GetComponent<AiSensor>();
+        if (sensor == null)
+            Debug.LogError("AiSensor component not found.");
+
         attack = GetComponent<AiAttack>();
+        if (attack == null)
+            Debug.LogError("AiAttack component not found.");
+
+        UpdateSpeed();
+    }
+
+    void UpdateSpeed()
+    {
+        if (agent != null && score != null)
+        {
+            agent.speed = baseSpeed + score.getScoreCount() * speedIncreasePerLevel;
+        }
     }
 
     void Update()
     {
+        if (player == null || sensor == null || attack == null || agent == null)
+        {
+            Debug.LogError("One or more essential components are missing.");
+            return; // Skip the update cycle if something is wrong.
+        }
+
         playerInSight = sensor.IsInSight(player);
         playerInAttackRange = attack.IsInSight(player);
 
@@ -50,6 +82,8 @@ public class EnemyAIPatrol : MonoBehaviour
                 StartCoroutine(StartPatrolling());
             }
         }
+
+        UpdateSpeed();
     }
 
     IEnumerator StartPatrolling()
