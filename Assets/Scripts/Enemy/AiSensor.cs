@@ -177,11 +177,11 @@ public class AiSensor : MonoBehaviour
             Gizmos.DrawMesh(mesh, transform.position, transform.rotation);
         }
 
-        Gizmos.DrawWireSphere(transform.position, distance);
-        for (int i = 0; i < count; ++i)
-        {
-            Gizmos.DrawSphere(colliders[i].transform.position, 0.2f);
-        }
+        // Gizmos.DrawWireSphere(transform.position, distance);
+        // for (int i = 0; i < count; ++i)
+        // {
+        //     Gizmos.DrawSphere(colliders[i].transform.position, 0.2f);
+        // }
 
         Gizmos.color = Color.green;
         foreach (var obj in Objects) 

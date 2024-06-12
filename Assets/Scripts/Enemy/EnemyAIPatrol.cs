@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.SceneManagement;
 
 public class EnemyAIPatrol : MonoBehaviour
 {
@@ -29,6 +30,7 @@ public class EnemyAIPatrol : MonoBehaviour
     void Update()
     {
         playerInSight = sensor.IsInSight(player);
+        Debug.Log("This is returning " + playerInSight);
         // playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
         
         if(!playerInSight) 
@@ -39,7 +41,7 @@ public class EnemyAIPatrol : MonoBehaviour
         {
             Chase();
         }
-        // if(playerInSight && playerInAttackRange)Attack();
+        if(playerInSight && playerInAttackRange)Attack();
     }
 
     void Patroling()
@@ -63,7 +65,7 @@ public class EnemyAIPatrol : MonoBehaviour
 
     void Attack()
     {
-
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
     
     private void SearchWalkPoint()
@@ -73,11 +75,6 @@ public class EnemyAIPatrol : MonoBehaviour
         Vector3 max = mapBounds.max.position;
 
         walkPoint = new Vector3( Random.Range(min.x, max.x), transform.position.y, Random.Range(min.z, max.z));
-        // // Calculate random point in range
-        // float randomZ = Random.Range(-walkPointRange, walkPointRange);
-        // float randomX = Random.Range(-walkPointRange, walkPointRange);
-
-        // walkPoint = new Vector3(transform.position.x + randomX, transform.position.y, transform.position.z + randomZ);
 
         if (Physics.Raycast(walkPoint, -transform.up, 2f, whatIsGround))
             walkPointSet = true;
