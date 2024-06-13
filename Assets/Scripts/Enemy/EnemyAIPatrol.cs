@@ -10,14 +10,15 @@ public class EnemyAIPatrol : MonoBehaviour
     GameObject player;
     NavMeshAgent agent;
 
-    ScoreManager score;
+    // Animation
+    Animator animator;
+    int isPatrollingHash;
+    int isChasingHash;
+    int isAttackingHash;
 
     [SerializeField] LayerMask whatIsGround;
     [SerializeField] float patrolDelay = 5f;  // Delay between patrols
     [SerializeField] float chaseDelay = 1f;   // Delay before starting to chase
-
-     [SerializeField] float baseSpeed = 3.5f;
-    [SerializeField] float speedIncreasePerLevel = 0.5f;
 
     // Patroling
     Vector3 walkPoint;
@@ -30,42 +31,22 @@ public class EnemyAIPatrol : MonoBehaviour
     void Start()
     {
         player = GameObject.Find("Player");
-        if (player == null)
-            Debug.LogError("Player GameObject not found.");
-
         agent = GetComponent<NavMeshAgent>();
-        if (agent == null)
-            Debug.LogError("NavMeshAgent component not found.");
-
         sensor = GetComponent<AiSensor>();
-        if (sensor == null)
-            Debug.LogError("AiSensor component not found.");
-
         attack = GetComponent<AiAttack>();
-        if (attack == null)
-            Debug.LogError("AiAttack component not found.");
-
-        UpdateSpeed();
-    }
-
-    void UpdateSpeed()
-    {
-        if (agent != null && score != null)
-        {
-            agent.speed = baseSpeed + score.getScoreCount() * speedIncreasePerLevel;
-        }
+        isPatrollingHash = Animator.StringToHash("isPatrolling");
+        isChasingHash = Animator.StringToHash("isChasing");
+        isAttackingHash = Animator.StringToHash("isAttacking");
     }
 
     void Update()
     {
-        if (player == null || sensor == null || attack == null || agent == null)
-        {
-            Debug.LogError("One or more essential components are missing.");
-            return; // Skip the update cycle if something is wrong.
-        }
-
+        //animator.SetBool(isPatrollingHash, true);
         playerInSight = sensor.IsInSight(player);
         playerInAttackRange = attack.IsInSight(player);
+        bool isPatrolling = animator.GetBool(isPatrollingHash);
+        bool isChasing = animator.GetBool(isChasingHash);
+        bool isAttacking = animator.GetBool(isAttackingHash);
 
         if (!isActing)
         {
@@ -82,13 +63,12 @@ public class EnemyAIPatrol : MonoBehaviour
                 StartCoroutine(StartPatrolling());
             }
         }
-
-        UpdateSpeed();
     }
 
     IEnumerator StartPatrolling()
     {
         isActing = true;
+        animator.SetBool(isPatrollingHash, true);
         if (!walkPointSet) SearchWalkPoint();
         if (walkPointSet) agent.SetDestination(walkPoint);
 
@@ -97,19 +77,23 @@ public class EnemyAIPatrol : MonoBehaviour
 
         yield return new WaitForSeconds(patrolDelay);
         isActing = false;
+       // animator.SetBool(isPatrollingHash, false);
     }
 
     IEnumerator StartChase()
     {
         isActing = true;
+        animator.SetBool(isChasingHash, true);
         yield return new WaitForSeconds(chaseDelay);
         agent.SetDestination(player.transform.position);
         isActing = false;
+       // animator.SetBool(isChasingHash, false);
     }
 
     IEnumerator PerformAttack()
     {
         isActing = true;
+        animator.SetBool(isAttackingHash, true);
         // Grab player
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         yield return null;  // Placeholder since the scene will change
