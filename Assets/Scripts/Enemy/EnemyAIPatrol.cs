@@ -2,11 +2,10 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System.Collections.Generic;
 
 public class EnemyAIPatrol : MonoBehaviour
 {
-    AiSensor sensor;
-    AiAttack attack;
     GameObject player;
     NavMeshAgent agent;
 
@@ -16,7 +15,7 @@ public class EnemyAIPatrol : MonoBehaviour
     int isChasingHash;
     int isAttackingHash;
 
-    [SerializeField] LayerMask whatIsGround;
+    [SerializeField] LayerMask whatIsGround, whatIsPlayer;
     [SerializeField] float patrolDelay = 5f;  // Delay between patrols
     [SerializeField] float chaseDelay = 1f;   // Delay before starting to chase
 
@@ -28,12 +27,26 @@ public class EnemyAIPatrol : MonoBehaviour
     bool playerInSight, playerInAttackRange;
     bool isActing;  // To control the flow of actions
 
+    public float distance = 10;
+    public float angle = 30;
+    public float height = 1.0f;
+    public Color meshColor = Color.red;
+    public int scanFrequency = 30;
+    public LayerMask layers;
+    public LayerMask occlusionLayers;
+    public List<GameObject> Objects = new List<GameObject>();
+
+    Collider[] colliders = new Collider[50];
+    Mesh mesh, meshAttack;
+    int count;
+    float scanInterval;
+    float scanTimer;
+
     void Start()
     {
+        scanInterval = 1.0f / scanFrequency;
         player = GameObject.Find("Player");
         agent = GetComponent<NavMeshAgent>();
-        sensor = GetComponent<AiSensor>();
-        attack = GetComponent<AiAttack>();
         isPatrollingHash = Animator.StringToHash("isPatrolling");
         isChasingHash = Animator.StringToHash("isChasing");
         isAttackingHash = Animator.StringToHash("isAttacking");
@@ -41,9 +54,17 @@ public class EnemyAIPatrol : MonoBehaviour
 
     void Update()
     {
+        scanTimer -= Time.deltaTime;
+        if (scanTimer < 0)
+        {
+            scanTimer += scanInterval;
+            Scan();
+            AttackScan();
+        }
         //animator.SetBool(isPatrollingHash, true);
-        playerInSight = sensor.IsInSight(player);
-        playerInAttackRange = attack.IsInSight(player);
+        playerInSight = IsInSight(player);
+        playerInAttackRange = IsInAttackRange(player);
+        
         bool isPatrolling = animator.GetBool(isPatrollingHash);
         bool isChasing = animator.GetBool(isChasingHash);
         bool isAttacking = animator.GetBool(isAttackingHash);
@@ -63,6 +84,263 @@ public class EnemyAIPatrol : MonoBehaviour
                 StartCoroutine(StartPatrolling());
             }
         }
+    }
+
+    private void Scan() {
+        count = Physics.OverlapSphereNonAlloc(transform.position, distance, colliders, layers, QueryTriggerInteraction.Collide);
+
+        Objects.Clear();
+        for (int i = 0; i < count; ++i)
+        {
+            GameObject obj = colliders[i].gameObject;
+            if (IsInSight(obj)) 
+            {
+                Objects.Add(obj);
+            }
+        }
+    }
+
+    private void AttackScan() {
+        count = Physics.OverlapSphereNonAlloc(transform.position, distance, colliders, layers, QueryTriggerInteraction.Collide);
+
+        Objects.Clear();
+        for (int i = 0; i < count; ++i)
+        {
+            GameObject obj = colliders[i].gameObject;
+            if (IsInAttackRange(obj)) 
+            {
+                Objects.Add(obj);
+            }
+        }
+    }
+
+    public bool IsInSight(GameObject obj)
+    {
+        Vector3 origin = transform.position;
+        Vector3 dest = obj.transform.position;
+        Vector3 direction = dest - origin;
+
+        if (direction.y < 0 || direction.y > height)
+        {
+            return false;
+        }
+
+        direction.y = 0;
+        float deltaAngle = Vector3.Angle(direction, transform.forward);
+        if (deltaAngle > angle) 
+        {
+            return false;
+        }
+
+        origin.y += height / 2;
+        dest.y = origin.y;
+        if (Physics.Linecast(origin, dest, occlusionLayers))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public bool IsInAttackRange(GameObject obj)
+    {
+        Vector3 origin = transform.position;
+        Vector3 dest = obj.transform.position;
+        Vector3 direction = dest - origin;
+
+        if (direction.y < 0 || direction.y > height)
+        {
+            return false;
+        }
+
+        direction.y = 0;
+        float deltaAngle = Vector3.Angle(direction, transform.forward);
+        if (deltaAngle > angle) 
+        {
+            return false;
+        }
+
+        origin.y += height / 2;
+        dest.y = origin.y;
+        if (Physics.Linecast(origin, dest, occlusionLayers))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    Mesh CreateWedgeMesh()
+    {
+        Mesh mesh = new Mesh();
+
+        int segments = 10;
+        int numTriangles = (segments * 4) + 2 + 2;
+        int numVerticies = numTriangles * 3;
+
+        Vector3[] vertices = new Vector3[numVerticies];
+        int[] triangles = new int[numVerticies];
+
+        Vector3 bottomCenter = Vector3.zero;
+        Vector3 bottomLeft = Quaternion.Euler(0, -angle, 0) * Vector3.forward * distance;
+        Vector3 bottomRight = Quaternion.Euler(0, angle, 0) * Vector3.forward * distance;
+
+        Vector3 topCenter = bottomCenter + Vector3.up * height;
+        Vector3 topRight = bottomRight + Vector3.up * height;
+        Vector3 topLeft = bottomLeft + Vector3.up * height;
+
+        int vert = 0;
+
+        // left side
+        vertices[vert++] = bottomCenter;
+        vertices[vert++] = bottomLeft;
+        vertices[vert++] = topLeft;
+
+        vertices[vert++] = topLeft;
+        vertices[vert++] = topCenter;
+        vertices[vert++] = bottomCenter;
+
+        // right side
+        vertices[vert++] = bottomCenter;
+        vertices[vert++] = topCenter;
+        vertices[vert++] = topRight;
+
+        vertices[vert++] = topRight;
+        vertices[vert++] = bottomRight;
+        vertices[vert++] = bottomCenter;
+
+        float currentAngle = -angle;
+        float deltaAngle = (angle * 2) / segments;
+        for (int i = 0; i < segments; ++i)
+        {
+            bottomLeft = Quaternion.Euler(0, currentAngle, 0) * Vector3.forward * distance;
+            bottomRight = Quaternion.Euler(0, currentAngle + deltaAngle, 0) * Vector3.forward * distance;            
+
+            topRight = bottomRight + Vector3.up * height;
+            topLeft = bottomLeft + Vector3.up * height;
+
+             // far side
+            vertices[vert++] = bottomLeft;
+            vertices[vert++] = bottomRight;
+            vertices[vert++] = topRight;
+
+            vertices[vert++] = topRight;
+            vertices[vert++] = topLeft;
+            vertices[vert++] = bottomLeft;
+
+            // top
+            vertices[vert++] = topCenter;
+            vertices[vert++] = topLeft;
+            vertices[vert++] = topRight;
+
+            // bottom
+
+            vertices[vert++] = bottomCenter;
+            vertices[vert++] = bottomRight;
+            vertices[vert++] = bottomLeft;
+
+            currentAngle += deltaAngle;
+        }
+
+        for (int i = 0; i < numVerticies; i++)
+        {
+            triangles[i] = i;
+        }
+
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+
+        return mesh;
+    }
+
+    Mesh CreateWedgeMeshAttack()
+    {
+        Mesh mesh = new Mesh();
+
+        int segments = 10;
+        int numTriangles = (segments * 4) + 2 + 2;
+        int numVerticies = numTriangles * 3;
+
+        Vector3[] vertices = new Vector3[numVerticies];
+        int[] triangles = new int[numVerticies];
+
+        Vector3 bottomCenter = Vector3.zero;
+        Vector3 bottomLeft = Quaternion.Euler(0, -angle, 0) * Vector3.forward * distance;
+        Vector3 bottomRight = Quaternion.Euler(0, angle, 0) * Vector3.forward * distance;
+
+        Vector3 topCenter = bottomCenter + Vector3.up * height;
+        Vector3 topRight = bottomRight + Vector3.up * height;
+        Vector3 topLeft = bottomLeft + Vector3.up * height;
+
+        int vert = 0;
+
+        // left side
+        vertices[vert++] = bottomCenter;
+        vertices[vert++] = bottomLeft;
+        vertices[vert++] = topLeft;
+
+        vertices[vert++] = topLeft;
+        vertices[vert++] = topCenter;
+        vertices[vert++] = bottomCenter;
+
+        // right side
+        vertices[vert++] = bottomCenter;
+        vertices[vert++] = topCenter;
+        vertices[vert++] = topRight;
+
+        vertices[vert++] = topRight;
+        vertices[vert++] = bottomRight;
+        vertices[vert++] = bottomCenter;
+
+        float currentAngle = -angle;
+        float deltaAngle = (angle * 2) / segments;
+        for (int i = 0; i < segments; ++i)
+        {
+            bottomLeft = Quaternion.Euler(0, currentAngle, 0) * Vector3.forward * distance;
+            bottomRight = Quaternion.Euler(0, currentAngle + deltaAngle, 0) * Vector3.forward * distance;            
+
+            topRight = bottomRight + Vector3.up * height;
+            topLeft = bottomLeft + Vector3.up * height;
+
+             // far side
+            vertices[vert++] = bottomLeft;
+            vertices[vert++] = bottomRight;
+            vertices[vert++] = topRight;
+
+            vertices[vert++] = topRight;
+            vertices[vert++] = topLeft;
+            vertices[vert++] = bottomLeft;
+
+            // top
+            vertices[vert++] = topCenter;
+            vertices[vert++] = topLeft;
+            vertices[vert++] = topRight;
+
+            // bottom
+
+            vertices[vert++] = bottomCenter;
+            vertices[vert++] = bottomRight;
+            vertices[vert++] = bottomLeft;
+
+            currentAngle += deltaAngle;
+        }
+
+        for (int i = 0; i < numVerticies; i++)
+        {
+            triangles[i] = i;
+        }
+
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+
+        return mesh;
+    }
+
+    private void OnValidate()
+    {
+        mesh = CreateWedgeMesh();
+        meshAttack = CreateWedgeMeshAttack();
+        scanInterval = 1.0f / scanFrequency;
     }
 
     IEnumerator StartPatrolling()
