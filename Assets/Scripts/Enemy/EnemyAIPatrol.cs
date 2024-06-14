@@ -19,6 +19,9 @@ public class EnemyAIPatrol : MonoBehaviour
     [SerializeField] float patrolDelay = 5f;  // Delay between patrols
     [SerializeField] float chaseDelay = 1f;   // Delay before starting to chase
 
+    [SerializeField] float baseSpeed = 3.5f;
+    [SerializeField] float speedIncreasePerLevel = 0.5f;
+
     // Patroling
     Vector3 walkPoint;
     bool walkPointSet;
@@ -50,6 +53,7 @@ public class EnemyAIPatrol : MonoBehaviour
         isPatrollingHash = Animator.StringToHash("isPatrolling");
         isChasingHash = Animator.StringToHash("isChasing");
         isAttackingHash = Animator.StringToHash("isAttacking");
+        UpdateSpeed();
     }
 
     void Update()
@@ -83,6 +87,14 @@ public class EnemyAIPatrol : MonoBehaviour
             {
                 StartCoroutine(StartPatrolling());
             }
+        }
+    }
+
+        void UpdateSpeed()
+    {
+        if (agent != null)
+        {
+            agent.speed = baseSpeed + ScoreManager.scoreCount * speedIncreasePerLevel;
         }
     }
 

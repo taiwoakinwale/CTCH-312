@@ -20,9 +20,11 @@ public class GenerateEnemies : MonoBehaviour
     [SerializeField] private int mazeStartZ;
 
     private int enemyCount;
+    private int enemyTotal;
 
     void Start()
     {
+        enemyTotal = enemyAmount + ScoreManager.scoreCount;
         StartCoroutine(EnemyDrop());
     }
 
