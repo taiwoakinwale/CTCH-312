@@ -9,9 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7416934482791958190}
-  - component: {fileID: 1592989103576210950}
-  - component: {fileID: 954182521587676291}
-  - component: {fileID: 1143703142498810294}
   m_Layer: 8
   m_Name: Enemy 1
   m_TagString: Untagged
@@ -35,85 +32,6 @@ Transform:
   - {fileID: 2061635683678659195}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!136 &1592989103576210950
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2315311808229029573}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!195 &954182521587676291
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2315311808229029573}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 0.5
-  m_Speed: 3.5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 1
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
---- !u!114 &1143703142498810294
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2315311808229029573}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 44a93fd265d284045bf33007f2236136, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  whatIsGround:
-    serializedVersion: 2
-    m_Bits: 1
-  whatIsPlayer:
-    serializedVersion: 2
-    m_Bits: 128
-  patrolDelay: 5
-  chaseDelay: 1
-  baseSpeed: 3.5
-  speedIncreasePerLevel: 0.5
-  distance: 10
-  angle: 30
-  height: 1
-  meshColor: {r: 1, g: 0, b: 0, a: 1}
-  scanFrequency: 30
-  layers:
-    serializedVersion: 2
-    m_Bits: 1
-  occlusionLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  Objects: []
 --- !u!1001 &1951993531271923088
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -212,10 +130,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1d8473623adb34639a2e32095e952198,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2018983179789989894}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1d8473623adb34639a2e32095e952198,
-        type: 3}
-      insertIndex: -1
       addedObject: {fileID: 7572430444803190683}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1d8473623adb34639a2e32095e952198,
         type: 3}
@@ -237,6 +151,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 4932452715325241192}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1d8473623adb34639a2e32095e952198,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4570959381228662006}
   m_SourcePrefab: {fileID: 100100000, guid: 1d8473623adb34639a2e32095e952198, type: 3}
 --- !u!1 &1718041995707939009 stripped
 GameObject:
@@ -288,40 +206,6 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &2018983179789989894
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1718041995707939009}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 44a93fd265d284045bf33007f2236136, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  whatIsGround:
-    serializedVersion: 2
-    m_Bits: 1
-  whatIsPlayer:
-    serializedVersion: 2
-    m_Bits: 128
-  patrolDelay: 5
-  chaseDelay: 1
-  baseSpeed: 3.5
-  speedIncreasePerLevel: 0.5
-  distance: 10
-  angle: 30
-  height: 1
-  meshColor: {r: 1, g: 0, b: 0, a: 1}
-  scanFrequency: 30
-  layers:
-    serializedVersion: 2
-    m_Bits: 0
-  occlusionLayers:
-    serializedVersion: 2
-    m_Bits: 1
-  Objects: []
 --- !u!195 &7572430444803190683
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -744,6 +628,35 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &4570959381228662006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1718041995707939009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44a93fd265d284045bf33007f2236136, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  whatIsGround:
+    serializedVersion: 2
+    m_Bits: 1
+  whatIsPlayer:
+    serializedVersion: 2
+    m_Bits: 128
+  patrolDelay: 1
+  chaseDelay: 0.2
+  baseSpeed: 3.5
+  speedIncreasePerLevel: 0.5
+  distance: 15
+  attackDistance: 4
+  angle: 30
+  height: 5
+  meshColor: {r: 1, g: 0, b: 0, a: 1}
+  scanFrequency: 30
+  Objects: []
 --- !u!4 &2061635683678659195 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1d8473623adb34639a2e32095e952198,

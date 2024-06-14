@@ -4,20 +4,24 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 
+[ExecuteInEditMode]
 public class EnemyAIPatrol : MonoBehaviour
 {
     GameObject player;
     NavMeshAgent agent;
 
-    // Animation
+     // Animation
     Animator animator;
     int isPatrollingHash;
     int isChasingHash;
     int isAttackingHash;
-
+    bool isPatrolling;
+    bool isChasing;
+    bool isAttacking;
+    
     [SerializeField] LayerMask whatIsGround, whatIsPlayer;
-    [SerializeField] float patrolDelay = 5f;  // Delay between patrols
-    [SerializeField] float chaseDelay = 1f;   // Delay before starting to chase
+    [SerializeField] float patrolDelay = 1f;  // Delay between patrols
+    [SerializeField] float chaseDelay = 0.2f;   // Delay before starting to chase
 
     [SerializeField] float baseSpeed = 3.5f;
     [SerializeField] float speedIncreasePerLevel = 0.5f;
@@ -27,15 +31,16 @@ public class EnemyAIPatrol : MonoBehaviour
     bool walkPointSet;
 
     // State change
-    bool playerInSight, playerInAttackRange;
     bool isActing;  // To control the flow of actions
 
-    public float distance = 10;
+    public float distance = 15;
+    public float attackDistance = 4f;
     public float angle = 30;
-    public float height = 1.0f;
-    public Color meshColor = Color.red;
-    public int scanFrequency = 30;
+    public float height = 5f;
+    public Color meshColor = Color.green;
+    public int scanFrequency = 40;
     public List<GameObject> Objects = new List<GameObject>();
+    public List<GameObject> attackPlayer = new List<GameObject>();
 
     Collider[] colliders = new Collider[50];
     Mesh mesh, meshAttack;
@@ -43,11 +48,14 @@ public class EnemyAIPatrol : MonoBehaviour
     float scanInterval;
     float scanTimer;
 
+    bool playerInSight, playerInAttackRange;
+
     void Start()
     {
         scanInterval = 1.0f / scanFrequency;
         player = GameObject.Find("Player");
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponent<Animator>();
         isPatrollingHash = Animator.StringToHash("isPatrolling");
         isChasingHash = Animator.StringToHash("isChasing");
         isAttackingHash = Animator.StringToHash("isAttacking");
@@ -63,32 +71,29 @@ public class EnemyAIPatrol : MonoBehaviour
             Scan();
             AttackScan();
         }
-        //animator.SetBool(isPatrollingHash, true);
-        playerInSight = IsInSight(player);
-        playerInAttackRange = IsInAttackRange(player);
         
-        bool isPatrolling = animator.GetBool(isPatrollingHash);
-        bool isChasing = animator.GetBool(isChasingHash);
-        bool isAttacking = animator.GetBool(isAttackingHash);
+        isPatrolling = animator.GetBool(isPatrollingHash);
+        isChasing = animator.GetBool(isChasingHash);
+        isAttacking = animator.GetBool(isAttackingHash);
 
         if (!isActing)
         {
+            if (!playerInSight && !playerInAttackRange)
+            {
+                StartCoroutine(StartPatrolling());
+            }
+            if (playerInSight && !playerInAttackRange)
+            {
+                StartCoroutine(StartChase());
+            }
             if (playerInSight && playerInAttackRange)
             {
                 StartCoroutine(PerformAttack());
             }
-            else if (playerInSight)
-            {
-                StartCoroutine(StartChase());
-            }
-            else
-            {
-                StartCoroutine(StartPatrolling());
-            }
         }
     }
 
-        void UpdateSpeed()
+    void UpdateSpeed()
     {
         if (agent != null)
         {
@@ -99,6 +104,8 @@ public class EnemyAIPatrol : MonoBehaviour
     private void Scan() {
         count = Physics.OverlapSphereNonAlloc(transform.position, distance, colliders, whatIsPlayer, QueryTriggerInteraction.Collide);
 
+        playerInSight = false;
+
         Objects.Clear();
         for (int i = 0; i < count; ++i)
         {
@@ -108,19 +115,30 @@ public class EnemyAIPatrol : MonoBehaviour
                 Objects.Add(obj);
             }
         }
+        if (Objects.Contains(player))
+        {
+            playerInSight = true;
+        }
     }
 
     private void AttackScan() {
-        count = Physics.OverlapSphereNonAlloc(transform.position, distance, colliders, whatIsPlayer, QueryTriggerInteraction.Collide);
+        count = Physics.OverlapSphereNonAlloc(transform.position, attackDistance, colliders, whatIsPlayer, QueryTriggerInteraction.Collide);
 
-        Objects.Clear();
+
+        playerInAttackRange = false;
+
+        attackPlayer.Clear();
         for (int i = 0; i < count; ++i)
         {
             GameObject obj = colliders[i].gameObject;
             if (IsInAttackRange(obj)) 
             {
-                Objects.Add(obj);
+                attackPlayer.Add(obj);
             }
+        }
+        if (attackPlayer.Contains(player))
+        {
+            playerInAttackRange = true;
         }
     }
 
@@ -269,13 +287,14 @@ public class EnemyAIPatrol : MonoBehaviour
         int segments = 10;
         int numTriangles = (segments * 4) + 2 + 2;
         int numVerticies = numTriangles * 3;
+        
 
         Vector3[] vertices = new Vector3[numVerticies];
         int[] triangles = new int[numVerticies];
 
         Vector3 bottomCenter = Vector3.zero;
-        Vector3 bottomLeft = Quaternion.Euler(0, -angle, 0) * Vector3.forward * distance;
-        Vector3 bottomRight = Quaternion.Euler(0, angle, 0) * Vector3.forward * distance;
+        Vector3 bottomLeft = Quaternion.Euler(0, -angle, 0) * Vector3.forward * attackDistance;
+        Vector3 bottomRight = Quaternion.Euler(0, angle, 0) * Vector3.forward * attackDistance;
 
         Vector3 topCenter = bottomCenter + Vector3.up * height;
         Vector3 topRight = bottomRight + Vector3.up * height;
@@ -305,8 +324,8 @@ public class EnemyAIPatrol : MonoBehaviour
         float deltaAngle = (angle * 2) / segments;
         for (int i = 0; i < segments; ++i)
         {
-            bottomLeft = Quaternion.Euler(0, currentAngle, 0) * Vector3.forward * distance;
-            bottomRight = Quaternion.Euler(0, currentAngle + deltaAngle, 0) * Vector3.forward * distance;            
+            bottomLeft = Quaternion.Euler(0, currentAngle, 0) * Vector3.forward * attackDistance;
+            bottomRight = Quaternion.Euler(0, currentAngle + deltaAngle, 0) * Vector3.forward * attackDistance;            
 
             topRight = bottomRight + Vector3.up * height;
             topLeft = bottomLeft + Vector3.up * height;
@@ -356,7 +375,13 @@ public class EnemyAIPatrol : MonoBehaviour
     IEnumerator StartPatrolling()
     {
         isActing = true;
-        animator.SetBool(isPatrollingHash, true);
+        //Handle Animation
+        if (!isPatrolling)
+        {
+            animator.SetBool(isChasingHash, false);
+            animator.SetBool(isPatrollingHash, true);
+        }
+        
         if (!walkPointSet) SearchWalkPoint();
         if (walkPointSet) agent.SetDestination(walkPoint);
 
@@ -365,23 +390,27 @@ public class EnemyAIPatrol : MonoBehaviour
 
         yield return new WaitForSeconds(patrolDelay);
         isActing = false;
-       // animator.SetBool(isPatrollingHash, false);
+       
     }
 
     IEnumerator StartChase()
     {
         isActing = true;
-        animator.SetBool(isChasingHash, true);
+        //Handle animation
+        if (!isChasing)
+            animator.SetBool(isChasingHash, true);
         yield return new WaitForSeconds(chaseDelay);
         agent.SetDestination(player.transform.position);
         isActing = false;
-       // animator.SetBool(isChasingHash, false);
     }
 
     IEnumerator PerformAttack()
     {
         isActing = true;
-        animator.SetBool(isAttackingHash, true);
+        //Handle animation
+        if(!isAttacking)
+            animator.SetBool(isAttackingHash, true);
+        yield return new WaitForSeconds(5f);
         // Grab player
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         yield return null;  // Placeholder since the scene will change
@@ -396,4 +425,21 @@ public class EnemyAIPatrol : MonoBehaviour
         walkPoint = new Vector3(Random.Range(min.x, max.x), transform.position.y, Random.Range(min.z, max.z));
         if (Physics.Raycast(walkPoint, -transform.up, 2f, whatIsGround)) walkPointSet = true;
     }
+
+    void OnDrawGizmos()
+{
+    if (mesh == null || meshAttack == null)
+    {
+        mesh = CreateWedgeMesh();
+        meshAttack = CreateWedgeMeshAttack();
+    }
+
+    // Draw view cone
+    Gizmos.color = meshColor;
+    Gizmos.DrawMesh(mesh, transform.position, transform.rotation);
+
+    // Draw attack cone
+    Gizmos.color = Color.blue;
+    Gizmos.DrawMesh(meshAttack, transform.position, transform.rotation);
+}
 }
