@@ -35,8 +35,6 @@ public class EnemyAIPatrol : MonoBehaviour
     public float height = 1.0f;
     public Color meshColor = Color.red;
     public int scanFrequency = 30;
-    public LayerMask layers;
-    public LayerMask occlusionLayers;
     public List<GameObject> Objects = new List<GameObject>();
 
     Collider[] colliders = new Collider[50];
@@ -99,7 +97,7 @@ public class EnemyAIPatrol : MonoBehaviour
     }
 
     private void Scan() {
-        count = Physics.OverlapSphereNonAlloc(transform.position, distance, colliders, layers, QueryTriggerInteraction.Collide);
+        count = Physics.OverlapSphereNonAlloc(transform.position, distance, colliders, whatIsPlayer, QueryTriggerInteraction.Collide);
 
         Objects.Clear();
         for (int i = 0; i < count; ++i)
@@ -113,7 +111,7 @@ public class EnemyAIPatrol : MonoBehaviour
     }
 
     private void AttackScan() {
-        count = Physics.OverlapSphereNonAlloc(transform.position, distance, colliders, layers, QueryTriggerInteraction.Collide);
+        count = Physics.OverlapSphereNonAlloc(transform.position, distance, colliders, whatIsPlayer, QueryTriggerInteraction.Collide);
 
         Objects.Clear();
         for (int i = 0; i < count; ++i)
@@ -146,7 +144,7 @@ public class EnemyAIPatrol : MonoBehaviour
 
         origin.y += height / 2;
         dest.y = origin.y;
-        if (Physics.Linecast(origin, dest, occlusionLayers))
+        if (Physics.Linecast(origin, dest, whatIsGround))
         {
             return false;
         }
@@ -173,7 +171,7 @@ public class EnemyAIPatrol : MonoBehaviour
 
         origin.y += height / 2;
         dest.y = origin.y;
-        if (Physics.Linecast(origin, dest, occlusionLayers))
+        if (Physics.Linecast(origin, dest, whatIsGround))
         {
             return false;
         }
