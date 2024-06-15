@@ -30,7 +30,7 @@ public class GenerateEnemies : MonoBehaviour
 
     IEnumerator EnemyDrop()
     {
-        while (enemyCount < enemyAmount)
+        while (enemyCount < enemyTotal)
         {
             // Generate random positions within the maze's bounds
             float xPos = UnityEngine.Random.Range(mazeStartX, mazeStartX + mazeWidth);

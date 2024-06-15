@@ -23,8 +23,8 @@ public class EnemyAIPatrol : MonoBehaviour
     [SerializeField] float patrolDelay = 1f;  // Delay between patrols
     [SerializeField] float chaseDelay = 0.2f;   // Delay before starting to chase
 
-    [SerializeField] float baseSpeed = 3.5f;
-    [SerializeField] float speedIncreasePerLevel = 0.5f;
+    [SerializeField] float baseSpeed = 7f;
+    [SerializeField] float speedIncreasePerLevel = 1f;
 
     // Patroling
     Vector3 walkPoint;
@@ -33,8 +33,8 @@ public class EnemyAIPatrol : MonoBehaviour
     // State change
     bool isActing;  // To control the flow of actions
 
-    public float distance = 15;
-    public float attackDistance = 4f;
+    public float distance = 30;
+    public float attackDistance = 4.5f;
     public float angle = 30;
     public float height = 5f;
     public Color meshColor = Color.green;

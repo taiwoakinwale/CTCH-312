@@ -216,7 +216,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 3.5
+  m_Speed: 7
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
@@ -648,15 +648,16 @@ MonoBehaviour:
     m_Bits: 128
   patrolDelay: 1
   chaseDelay: 0.2
-  baseSpeed: 3.5
-  speedIncreasePerLevel: 0.5
-  distance: 15
-  attackDistance: 4
+  baseSpeed: 7
+  speedIncreasePerLevel: 1
+  distance: 30
+  attackDistance: 4.5
   angle: 30
   height: 5
-  meshColor: {r: 1, g: 0, b: 0, a: 1}
-  scanFrequency: 30
+  meshColor: {r: 0, g: 1, b: 0, a: 1}
+  scanFrequency: 40
   Objects: []
+  attackPlayer: []
 --- !u!4 &2061635683678659195 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1d8473623adb34639a2e32095e952198,
