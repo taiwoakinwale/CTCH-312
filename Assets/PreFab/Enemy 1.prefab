@@ -648,11 +648,11 @@ MonoBehaviour:
     m_Bits: 128
   patrolDelay: 1
   chaseDelay: 0.2
-  baseSpeed: 7
+  baseSpeed: 10
   speedIncreasePerLevel: 1
   distance: 30
   attackDistance: 4.5
-  angle: 30
+  angle: 60
   height: 5
   meshColor: {r: 0, g: 1, b: 0, a: 1}
   scanFrequency: 40

@@ -21,7 +21,7 @@ public class EnemyAIPatrol : MonoBehaviour
     
     [SerializeField] LayerMask whatIsGround, whatIsPlayer;
     [SerializeField] float patrolDelay = 1f;  // Delay between patrols
-    [SerializeField] float chaseDelay = 0.2f;   // Delay before starting to chase
+    [SerializeField] float chaseDelay = 0.01f;   // Delay before starting to chase
 
     [SerializeField] float baseSpeed = 7f;
     [SerializeField] float speedIncreasePerLevel = 1f;
@@ -97,7 +97,8 @@ public class EnemyAIPatrol : MonoBehaviour
     {
         if (agent != null)
         {
-            agent.speed = baseSpeed + ScoreManager.scoreCount * speedIncreasePerLevel;
+            if (agent.speed < 20)
+                agent.speed = baseSpeed + ScoreManager.scoreCount * speedIncreasePerLevel;
         }
     }
 
