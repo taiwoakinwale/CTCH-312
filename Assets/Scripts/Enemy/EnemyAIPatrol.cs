@@ -10,14 +10,14 @@ public class EnemyAIPatrol : MonoBehaviour
     GameObject player;
     NavMeshAgent agent;
 
-     // Animation
-    Animator animator;
-    int isPatrollingHash;
-    int isChasingHash;
-    int isAttackingHash;
-    bool isPatrolling;
-    bool isChasing;
-    bool isAttacking;
+    // Animation
+    Animator animator;      // Animator component
+    int isPatrollingHash;   // Hash version of isPatrolling
+    int isChasingHash;      // Hash version of isChasing
+    int isAttackingHash;    // Hash version of isAttacking
+    bool isPatrolling;      // Checks if enemy is patrolling
+    bool isChasing;         // Checks if enemy is chasing
+    bool isAttacking;       // Checks if enemy is attacking
     
     [SerializeField] LayerMask whatIsGround, whatIsPlayer;
     [SerializeField] float patrolDelay = 1f;  // Delay between patrols
@@ -56,9 +56,13 @@ public class EnemyAIPatrol : MonoBehaviour
         player = GameObject.Find("Player");
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+
+        // Convert animator variables to hash format to improve efficiency
         isPatrollingHash = Animator.StringToHash("isPatrolling");
         isChasingHash = Animator.StringToHash("isChasing");
         isAttackingHash = Animator.StringToHash("isAttacking");
+
+        
         UpdateSpeed();
     }
 
@@ -72,6 +76,7 @@ public class EnemyAIPatrol : MonoBehaviour
             AttackScan();
         }
         
+        // Check animator variables
         isPatrolling = animator.GetBool(isPatrollingHash);
         isChasing = animator.GetBool(isChasingHash);
         isAttacking = animator.GetBool(isAttackingHash);
@@ -376,6 +381,7 @@ public class EnemyAIPatrol : MonoBehaviour
     IEnumerator StartPatrolling()
     {
         isActing = true;
+
         //Handle Animation
         if (!isPatrolling)
         {
@@ -397,9 +403,11 @@ public class EnemyAIPatrol : MonoBehaviour
     IEnumerator StartChase()
     {
         isActing = true;
+
         //Handle animation
         if (!isChasing)
             animator.SetBool(isChasingHash, true);
+
         yield return new WaitForSeconds(chaseDelay);
         agent.SetDestination(player.transform.position);
         isActing = false;
@@ -408,9 +416,14 @@ public class EnemyAIPatrol : MonoBehaviour
     IEnumerator PerformAttack()
     {
         isActing = true;
+
+        // Immobilize the player
+        player.GetComponent<PlayerController>().immobilized = true;
+
         //Handle animation
         if(!isAttacking)
             animator.SetBool(isAttackingHash, true);
+
         yield return new WaitForSeconds(5f);
         // Grab player
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
