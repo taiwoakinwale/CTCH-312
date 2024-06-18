@@ -13,17 +13,15 @@ public class PlayerController : MonoBehaviour
     private float _currentVelocity;
     
     [SerializeField] private float speed;
-    public bool immobilized;
 
     private void Awake()
     {
         _characterController = GetComponent<CharacterController>();
-        immobilized = false;
     }
 
     private void Update()
     {
-        if (_input.sqrMagnitude == 0 || immobilized) return;
+        if (_input.sqrMagnitude == 0) return;
         
         var targetAngle = Mathf.Atan2(_direction.x, _direction.z) * Mathf.Rad2Deg;
         var angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref _currentVelocity, smoothTime);
