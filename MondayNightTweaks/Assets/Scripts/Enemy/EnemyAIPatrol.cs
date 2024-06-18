@@ -33,14 +33,15 @@ public class EnemyAIPatrol : MonoBehaviour
     // State change
     bool isActing;  // To control the flow of actions
 
-    public float distance = 30;
-    public float attackDistance = 4.5f;
-    public float angle = 30;
-    public float height = 5f;
-    public Color meshColor = Color.green;
-    public int scanFrequency = 40;
-    public List<GameObject> Objects = new List<GameObject>();
-    public List<GameObject> attackPlayer = new List<GameObject>();
+    public float distance = 30; // Distance of the main enemy view cone
+    public float attackDistance = 6f; // Distance of the attack range viewcone
+    public float angle = 60; // The angle of the view cone 
+    public float height = 5f; // Height of the view cone
+    public Color meshColor = Color.green; // View cone mesh when editing the game not visible to player
+    public int scanFrequency = 70; // Frequncy of the scans that the robot has per set time the higher the more scans there are
+    // These help due to raycasting and the IsInSight functions allowing the robots to see forever in the direction they are looking in.
+    public List<GameObject> Objects = new List<GameObject>(); // list that holds the objects that the enemy sees, which is just the player due to there not being any other objects
+    public List<GameObject> attackPlayer = new List<GameObject>(); // list for when the player is in attack range
 
     Collider[] colliders = new Collider[50];
     Mesh mesh, meshAttack;
@@ -52,6 +53,7 @@ public class EnemyAIPatrol : MonoBehaviour
 
     void Start()
     {
+        // Allows the robots to scan get the required components
         scanInterval = 1.0f / scanFrequency;
         player = GameObject.Find("Player");
         agent = GetComponent<NavMeshAgent>();
@@ -81,6 +83,7 @@ public class EnemyAIPatrol : MonoBehaviour
         isChasing = animator.GetBool(isChasingHash);
         isAttacking = animator.GetBool(isAttackingHash);
 
+        // check state of the robot and update it as required
         if (!isActing)
         {
             if (!playerInSight && !playerInAttackRange)
@@ -98,6 +101,7 @@ public class EnemyAIPatrol : MonoBehaviour
         }
     }
 
+    // increases the speed of the robot dependent on the score of the player
     void UpdateSpeed()
     {
         if (agent != null)
@@ -107,6 +111,7 @@ public class EnemyAIPatrol : MonoBehaviour
         }
     }
 
+    // function to scan, filter, and know when something is within mainly the player is within direct sight and range
     private void Scan() {
         count = Physics.OverlapSphereNonAlloc(transform.position, distance, colliders, whatIsPlayer, QueryTriggerInteraction.Collide);
 
@@ -127,6 +132,7 @@ public class EnemyAIPatrol : MonoBehaviour
         }
     }
 
+    // function to scan, filter, and know when something is within mainly the player is within direct sight and range for attacking and ending the game
     private void AttackScan() {
         count = Physics.OverlapSphereNonAlloc(transform.position, attackDistance, colliders, whatIsPlayer, QueryTriggerInteraction.Collide);
 
@@ -148,6 +154,7 @@ public class EnemyAIPatrol : MonoBehaviour
         }
     }
 
+    // Funtion that helps the robots see
     public bool IsInSight(GameObject obj)
     {
         Vector3 origin = transform.position;
@@ -175,6 +182,7 @@ public class EnemyAIPatrol : MonoBehaviour
         return true;
     }
 
+    // Does the same thing as IsInSight but specifically for AttackScan function
     public bool IsInAttackRange(GameObject obj)
     {
         Vector3 origin = transform.position;
@@ -202,6 +210,8 @@ public class EnemyAIPatrol : MonoBehaviour
         return true;
     }
 
+
+    // This creates the viewcone for the robot
     Mesh CreateWedgeMesh()
     {
         Mesh mesh = new Mesh();
@@ -286,6 +296,7 @@ public class EnemyAIPatrol : MonoBehaviour
         return mesh;
     }
 
+    // This creates the attack cone for the robot
     Mesh CreateWedgeMeshAttack()
     {
         Mesh mesh = new Mesh();

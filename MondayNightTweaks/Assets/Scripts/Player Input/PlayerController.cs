@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    private Vector2 _input;
+    private Vector2 _input; 
     private CharacterController _characterController;
     private Vector3 _direction;
 
@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour
         immobilized = false;
     }
 
+    // The update moves the player if there have been inputs for the player to move since the last update
     private void Update()
     {
         if (_input.sqrMagnitude == 0 || immobilized) return;
@@ -32,6 +33,7 @@ public class PlayerController : MonoBehaviour
         _characterController.Move(_direction * speed * Time.deltaTime);
     }
 
+    // Funtion to help interpret the inputs and to allow the player to move
     public void Move(InputAction.CallbackContext context)
     {
         _input = context.ReadValue<Vector2>();
