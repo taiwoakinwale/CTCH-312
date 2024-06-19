@@ -32,6 +32,7 @@ public class MazeGenerator : MonoBehaviour
         GetComponent<NavMeshSurface>().BuildNavMesh();
     }
 
+    // This give a random seed for the maze and if allows the possiblitity to input a spacific seed to get the same maze again
     private void InitializeRandomSeed()
     {
         if (_useSeed)
@@ -46,6 +47,7 @@ public class MazeGenerator : MonoBehaviour
         }
     }
 
+    // Creates a layout for the size of the maze
     private void InitializeMazeGrid()
     {
         _mazeGrid = new MazeCell[_mazeWidth, _mazeDepth];
@@ -61,6 +63,7 @@ public class MazeGenerator : MonoBehaviour
         }
     }
 
+    // Goes through and creates a maze through a path finding algorithm
     private void GenerateMaze(MazeCell previousCell, MazeCell currentCell)
     {
         currentCell.Visit();
@@ -79,12 +82,14 @@ public class MazeGenerator : MonoBehaviour
         } while (nextCell != null);
     }
 
+    //If the maze generator runs into a dead end, it will return to the last maze on it's path that still has unvisited directions
     private MazeCell GetNextUnvisitedCell(MazeCell currentCell)
     {
         var unvisitedCells = GetUnvisitedCells(currentCell);
         return unvisitedCells.OrderBy(_ => Random.Range(RANDOM_RANGE_MIN, RANDOM_RANGE_MAX)).FirstOrDefault();
     }
 
+    // Coroutine to help the GetNextUnvisitedCell
     private IEnumerable<MazeCell> GetUnvisitedCells(MazeCell currentCell)
     {
         int x = (int)currentCell.transform.localPosition.x - START_X;
@@ -111,11 +116,14 @@ public class MazeGenerator : MonoBehaviour
         }
     }
 
+    // Checks to make sure we don't try to create a maze that has a greater width or height than was originally defined
     private bool IsInBounds(int x, int z)
     {
         return x >= 0 && x < _mazeWidth && z >= 0 && z < _mazeDepth;
     }
 
+
+    // As we go through createing paths in the maze we want to clear the wall that we originally came from
     private void ClearWalls(MazeCell previousCell, MazeCell currentCell)
     {
         if (previousCell == null)

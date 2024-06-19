@@ -16,7 +16,7 @@ public class LevelLoader : MonoBehaviour
     {
         
     }
-
+    // When the player collides with the staircase that is tagged as "Level" the scene called Level will be called and the score will increase by one
     private void OnTriggerEnter(Collider other)
     {
         if (other.tag == "Level")

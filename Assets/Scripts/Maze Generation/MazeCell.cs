@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class MazeCell : MonoBehaviour
 {
+    // This script dictates what a singles cell of the maze is by it's self and is a helper for the maze generator
     [SerializeField] private GameObject _leftWall;
 
     [SerializeField] private GameObject _rightWall;
